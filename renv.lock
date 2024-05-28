@@ -671,6 +671,29 @@
       ],
       "Hash": "000436b6daff5a0372a9977a30857a97"
     },
+    "mlr3batchmark": {
+      "Package": "mlr3batchmark",
+      "Version": "0.1.1.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "mlr3batchmark",
+      "RemoteUsername": "mlr-org",
+      "RemotePkgRef": "mlr-org/mlr3batchmark",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "10a635db52ac098b6cf6a66e9c6a5ab67ceffedb",
+      "Requirements": [
+        "R",
+        "batchtools",
+        "checkmate",
+        "data.table",
+        "lgr",
+        "mlr3",
+        "mlr3misc",
+        "uuid"
+      ],
+      "Hash": "f6db6582c1d2e4c9b381af36fe4b6571"
+    },
     "mlr3extralearners": {
       "Package": "mlr3extralearners",
       "Version": "0.8.0-9000",
