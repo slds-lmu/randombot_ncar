@@ -787,6 +787,26 @@
       ],
       "Hash": "4a86b3ebb927945917c2f2a6e0ff35a3"
     },
+    "mlr3pipelines": {
+      "Package": "mlr3pipelines",
+      "Version": "0.5.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "backports",
+        "checkmate",
+        "data.table",
+        "digest",
+        "lgr",
+        "mlr3",
+        "mlr3misc",
+        "paradox",
+        "withr"
+      ],
+      "Hash": "d90f0641c03879f0efa3de5b3754d70e"
+    },
     "nlme": {
       "Package": "nlme",
       "Version": "3.1-162",
