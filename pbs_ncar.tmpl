@@ -6,8 +6,9 @@
 #PBS -k eod
 #PBS -q main
 #PBS -l walltime=<%= resources$walltime %>
-#PBS -l select=1:ncpus=1:mpiprocs=1:ompthreads=1
-#PBS -o <%= log.file %>
+#PBS -l select=1:ncpus=128:mpiprocs=1:ompthreads=1
+#PBS -o <%= log.file %>-^array_index^
+<%= sprintf("#PBS -J 1-%i", nrow(jobs)) %>
 
 ### Set temp to scratch
 export TMPDIR=/glade/derecho/scratch/${USER}/tmp && mkdir -p ${TMPDIR}
