@@ -16,6 +16,16 @@
       "Repository": "CRAN",
       "Hash": "a8235afbcd6316e6e91433ea47661013"
     },
+    "DiceKriging": {
+      "Package": "DiceKriging",
+      "Version": "1.6.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "methods"
+      ],
+      "Hash": "033765b87e28c58cb80809cc668a9623"
+    },
     "KernSmooth": {
       "Package": "KernSmooth",
       "Version": "2.23-21",
@@ -168,6 +178,30 @@
       ],
       "Hash": "c21ca34590a8dd80fccec5bf1b2d26d7"
     },
+    "bbotk": {
+      "Package": "bbotk",
+      "Version": "0.8.0.9000",
+      "Source": "GitHub",
+      "Remotes": "mlr-org/mlr3misc, mlr-org/rush",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "bbotk",
+      "RemoteUsername": "mlr-org",
+      "RemotePkgRef": "mlr-org/bbotk",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "f90bf58156d815a1dba122bee7994a4bcbfd0940",
+      "Requirements": [
+        "R",
+        "R6",
+        "checkmate",
+        "data.table",
+        "lgr",
+        "methods",
+        "mlr3misc",
+        "paradox"
+      ],
+      "Hash": "73912a3f4e44ae4f459e598ae008350f"
+    },
     "bit": {
       "Package": "bit",
       "Version": "4.0.5",
@@ -210,6 +244,19 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "8f4a384e19dccd8c65356dc096847b76"
+    },
+    "callr": {
+      "Package": "callr",
+      "Version": "3.7.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "processx",
+        "utils"
+      ],
+      "Hash": "d7e13f49c19103ece9e58ad2d83a7354"
     },
     "catboost": {
       "Package": "catboost",
@@ -354,14 +401,14 @@
     },
     "evaluate": {
       "Package": "evaluate",
-      "Version": "0.23",
+      "Version": "0.24.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "methods"
       ],
-      "Hash": "daf4a1246be12c1fa8c7705a0935c1a0"
+      "Hash": "a1066cbc05caee9a4bf6d90f194ff4da"
     },
     "foreach": {
       "Package": "foreach",
@@ -734,6 +781,33 @@
       ],
       "Hash": "1cf6c6f4da875871a7fd4e5025378164"
     },
+    "mlr3mbo": {
+      "Package": "mlr3mbo",
+      "Version": "0.2.2.9000",
+      "Source": "GitHub",
+      "Remotes": "mlr-org/bbotk, mlr-org/mlr3tuning, mlr-org/rush",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "mlr3mbo",
+      "RemoteUsername": "mlr-org",
+      "RemotePkgRef": "mlr-org/mlr3mbo@adbo",
+      "RemoteRef": "adbo",
+      "RemoteSha": "056e50e7a6bbca2729638ba063806657012d38e4",
+      "Requirements": [
+        "R",
+        "R6",
+        "bbotk",
+        "checkmate",
+        "data.table",
+        "lgr",
+        "mlr3",
+        "mlr3misc",
+        "mlr3tuning",
+        "paradox",
+        "spacefillr"
+      ],
+      "Hash": "ef344cbc51700d8644de91d0ff280592"
+    },
     "mlr3measures": {
       "Package": "mlr3measures",
       "Version": "0.5.0",
@@ -748,9 +822,15 @@
     },
     "mlr3misc": {
       "Package": "mlr3misc",
-      "Version": "0.15.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "0.15.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "mlr3misc",
+      "RemoteUsername": "mlr-org",
+      "RemotePkgRef": "mlr-org/mlr3misc",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "ebdcf1dfab5be19b5e59c8308c687a336b128a90",
       "Requirements": [
         "R",
         "R6",
@@ -760,7 +840,7 @@
         "digest",
         "methods"
       ],
-      "Hash": "412f0f1171ff9acbafb4112886516fec"
+      "Hash": "9cd934ebc803499c8c58e16fd9696da3"
     },
     "mlr3oml": {
       "Package": "mlr3oml",
@@ -806,6 +886,31 @@
         "withr"
       ],
       "Hash": "d90f0641c03879f0efa3de5b3754d70e"
+    },
+    "mlr3tuning": {
+      "Package": "mlr3tuning",
+      "Version": "0.20.0.9000",
+      "Source": "GitHub",
+      "Remotes": "mlr-org/bbotk, mlr-org/mlr3misc, mlr-org/mlr3pipelines@bundle, mlr-org/rush",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "mlr3tuning",
+      "RemoteUsername": "mlr-org",
+      "RemotePkgRef": "mlr-org/mlr3tuning",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "2a629f2a4272ed31406d371690c9d4f06a89b72e",
+      "Requirements": [
+        "R",
+        "R6",
+        "bbotk",
+        "checkmate",
+        "data.table",
+        "lgr",
+        "mlr3",
+        "mlr3misc",
+        "paradox"
+      ],
+      "Hash": "48c2d176a767064027d1012ddd23f714"
     },
     "nlme": {
       "Package": "nlme",
@@ -908,6 +1013,19 @@
       ],
       "Hash": "6b01fc98b1e86c4f705ce9dcfd2f57c7"
     },
+    "processx": {
+      "Package": "processx",
+      "Version": "3.8.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "ps",
+        "utils"
+      ],
+      "Hash": "0c90a7d71988856bad2a2a45dd871bb9"
+    },
     "progress": {
       "Package": "progress",
       "Version": "1.2.3",
@@ -933,6 +1051,17 @@
         "utils"
       ],
       "Hash": "e0ef355c12942cf7a6b91a6cfaea8b3e"
+    },
+    "ps": {
+      "Package": "ps",
+      "Version": "1.7.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "dd2b9319ee0656c8acf45c7f40c59de7"
     },
     "qs": {
       "Package": "qs",
@@ -995,6 +1124,17 @@
       ],
       "Hash": "397b7b2a265bc5a7a06852524dabae20"
     },
+    "rgenoud": {
+      "Package": "rgenoud",
+      "Version": "5.9-0.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "8cc5a5e8d451afe5d05a3e7c184c6491"
+    },
     "rlang": {
       "Package": "rlang",
       "Version": "1.1.3",
@@ -1032,6 +1172,27 @@
       ],
       "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
     },
+    "snow": {
+      "Package": "snow",
+      "Version": "0.4-4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "utils"
+      ],
+      "Hash": "40b74690debd20c57d93d8c246b305d4"
+    },
+    "spacefillr": {
+      "Package": "spacefillr",
+      "Version": "0.3.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Rcpp"
+      ],
+      "Hash": "16d32294bfd9e55d295ec40eec8aa89f"
+    },
     "spatial": {
       "Package": "spatial",
       "Version": "7.3-16",
@@ -1044,6 +1205,18 @@
         "utils"
       ],
       "Hash": "1f7d528460600aeab2c2fcc5b3f5bab6"
+    },
+    "storr": {
+      "Package": "storr",
+      "Version": "1.2.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "digest"
+      ],
+      "Hash": "96034207276a46a44dc81b8d43397602"
     },
     "stringfish": {
       "Package": "stringfish",

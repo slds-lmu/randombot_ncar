@@ -15,7 +15,112 @@ reg = makeExperimentRegistry(
   conf.file = "batchtools.conf.R",
   seed = 1)
 
-# learner
+# reg = loadRegistry(
+#   file.dir = "/glade/derecho/scratch/marcbecker/randombot_ncar/registry", 
+#   conf.file = "batchtools.conf.R",
+#   writeable = TRUE)
+
+# add problems 
+# tasks and resamplings
+
+#task_ids_218 = ocl(218)$task_ids
+#task_ids_99 = ocl(99)$task_ids
+#task_ids = c(task_ids_218, task_ids_99)
+# download of task albert fails
+#task_ids = task_ids[task_ids != 189356]
+
+# connection to openml often times out
+task_ids = c(3L, 12L, 31L, 53L, 3917L, 3945L, 7592L, 7593L, 9952L, 9977L, 
+  9981L, 10101L, 14965L, 34539L, 146195L, 146212L, 146606L, 146818L, 
+  146821L, 146822L, 146825L, 167119L, 167120L, 168329L, 168330L, 
+  168331L, 168332L, 168335L, 168337L, 168338L, 168868L, 168908L, 
+  168909L, 168910L, 168911L, 168912L, 189354L, 189355L, 6L, 11L, 
+  14L, 15L, 16L, 18L, 22L, 23L, 28L, 29L, 32L, 37L, 43L, 45L, 49L, 
+  219L, 2074L, 2079L, 3021L, 3022L, 3481L, 3549L, 3560L, 3573L, 
+  3902L, 3903L, 3904L, 3913L, 3918L, 9910L, 9946L, 9957L, 9960L, 
+  9964L, 9971L, 9976L, 9978L, 9985L, 10093L, 14952L, 14954L, 14969L, 
+  14970L, 125920L, 125922L, 146800L, 146817L, 146819L, 146820L, 
+  146824L, 167121L, 167124L, 167125L, 167140L, 167141L)
+
+walk(task_ids[seq(3)], function(id) {
+  try({
+    otask = otsk(id = id)
+    task = as_task(otask)
+    resampling = as_resampling(otask)
+
+    addProblem(
+      name = otask$data_name,
+      data = list(task = task, resampling = resampling),
+      fun = function(data, job, measure, ...) {
+        c(data, list(measure))
+      })
+
+    rm(otask)
+    rm(task)
+    rm(resampling)
+    gc()
+  })
+})
+
+pdes = replicate(length(reg$problems), list(data.table(measure = msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_au1p")))))
+pdes = set_names(pdes, reg$problems)
+
+# add Algorithms
+run_mbo = function(data, job, instance, learner, ...) {
+  library(mlr3)
+  library(mlr3learners)
+  library(mlr3tuning)
+  library(mlr3mbo)
+  library(mlr3pipelines)
+
+
+  inter_result_path = sprintf("/glade/derecho/scratch/marcbecker/randombot_ncar/registry/inter_results/%s.rds", job$id)
+
+  callback = callback_batch_tuning("bbotk.backup",
+    label = "Backup Archive Callback",
+    man = "bbotk::bbotk.backup",
+
+    on_optimizer_after_eval = function(callback, context) {
+      if (file.exists(callback$state$path)) unlink(callback$state$path)
+      saveRDS(context$instance$archive, callback$state$path)
+    }
+  )
+
+  callback$state$path = inter_result_path
+
+  learner$predict_type = "prob"
+  learner$encapsulate = c(train = "callr", predict = "callr")
+  learner$fallback = lrn("classif.featureless", predict_type = "prob")
+  learner$timeout = c(train = 3600, predict = 3600)
+
+  future::plan("multicore", workers = 10)
+
+  optim_instance = ti(
+    task = data$task,
+    learner = learner,
+    resampling = data$resampling,
+    measure = data$measure,
+    terminator = trm("evals", n_evals = 5),
+    callbacks = callback)
+
+  if (file.exists(inter_result_path)) {
+    archive = readRDS(inter_result_path)
+    optim_instance$archive = archive
+  } else {
+    init_design = generate_design_sobol(optim_instance$search_space, n = 10)$data
+    optim_instance$eval_batch(init_design)
+  }
+
+  tuner = tnr("mbo")
+  tuner$optimize(optim_instance)
+
+  instance
+} 
+
+addAlgorithm(
+  name = "run_mbo",
+  fun = run_mbo
+)
 
 # glmnet
 lrn_glmnet = as_learner(po("removeconstants", id = "glmnet_removeconstants") %>>%
@@ -90,6 +195,7 @@ learners = list(
   catboost = lrn_catboost, 
   lightgbm = lrn_lightgbm)
 
+# token
 tokens = list(
   glmnet = list(
     glmnet.s     = to_tune(1e-4, 1e4, logscale = TRUE),
@@ -160,74 +266,13 @@ tokens = list(
   )
 )
 
-set.seed(1)
-
-# search space
-param_values = map(learners, function(learner) {
-  learner = learner$clone()
+learners = map(learners, function(learner) {
   learner$param_set$set_values(.values = tokens[[learner$id]])
-  search_space = learner$param_set$search_space()
-
-  samplers = map(search_space$subspaces(), function(subspace) {
-    if (subspace$storage_type == "numeric") {
-      m = (subspace$lower - subspace$upper) / 2
-      Sampler1DNormal$new(subspace, mean = m, sd = m^2)
-    } else {
-      Sampler1DUnif$new(subspace)
-    }
-  })
-
-  sampler = SamplerHierarchical$new(search_space, samplers)
-  design = sampler$sample(1)
-  search_space$check_dt(design$data)
-  design$transpose()
+  learner
 })
 
-# tasks and resamplings
+ades = list(
+  run_mbo = data.table(learner = learners)
+)
 
-#task_ids_218 = ocl(218)$task_ids
-#task_ids_99 = ocl(99)$task_ids
-#task_ids = c(task_ids_218, task_ids_99)
-# download of task albert fails
-#task_ids = task_ids[task_ids != 189356]
-
-# connection to openml often times out
-task_ids = c(3L, 12L, 31L, 53L, 3917L, 3945L, 7592L, 7593L, 9952L, 9977L, 
-  9981L, 10101L, 14965L, 34539L, 146195L, 146212L, 146606L, 146818L, 
-  146821L, 146822L, 146825L, 167119L, 167120L, 168329L, 168330L, 
-  168331L, 168332L, 168335L, 168337L, 168338L, 168868L, 168908L, 
-  168909L, 168910L, 168911L, 168912L, 189354L, 189355L, 6L, 11L, 
-  14L, 15L, 16L, 18L, 22L, 23L, 28L, 29L, 32L, 37L, 43L, 45L, 49L, 
-  219L, 2074L, 2079L, 3021L, 3022L, 3481L, 3549L, 3560L, 3573L, 
-  3902L, 3903L, 3904L, 3913L, 3918L, 9910L, 9946L, 9957L, 9960L, 
-  9964L, 9971L, 9976L, 9978L, 9985L, 10093L, 14952L, 14954L, 14969L, 
-  14970L, 125920L, 125922L, 146800L, 146817L, 146819L, 146820L, 
-  146824L, 167121L, 167124L, 167125L, 167140L, 167141L)
-task_ids = 3L
-
-# add tasks in batchtes to keep memory usage low
-walk(split(task_ids, 1) , function(task_ids_subset) {
-  tasks = list()
-  resamplings = list()
-
-  for (id in task_ids_subset) {
-    otask = otsk(id = id)
-    tasks = c(tasks, as_task(otask))
-    resamplings = c(resamplings, as_resampling(otask))
-  }
-
-  design = benchmark_grid(
-    tasks = tasks,
-    learners = learners,
-    resamplings = resamplings,
-    param_values = param_values,
-    paired = TRUE
-  )
-
-  batchmark(design, reg = reg)
-
-  rm(tasks)
-  rm(resamplings)
-  rm(design)
-  gc()
-})
+addExperiments(prob.design = pdes, algo.design = ades)
