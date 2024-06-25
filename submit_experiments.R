@@ -1,16 +1,26 @@
 library(brew)
 library(batchtools)
+library(mlr3misc)
+library(uuid)
 
-job_table = getJobTable()
-job_ids = job_table$job.id
+reg = loadRegistry(
+  file.dir = "/glade/derecho/scratch/marcbecker/randombot_ncar/registry", 
+  conf.file = "batchtools.conf.R",
+  writeable = TRUE)
+
+job_ids = findNotDone()$job.id
 
 chunks = split(job_ids, ceiling(seq_along(job_ids) / 12))
+
+time = format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 
 walk(chunks[1], function(chunk) {
   env = new.env()
 
-  assign("job.name", sprintf("job_%i_%i", chunk[1], chunk[length(chunk)]), env = env)
-  assign("log.file", sprintf("job_%i_%i.log", chunk[1], chunk[length(chunk)]), env = env)
+  id = sprintf("%s_%s", time, str_collapse(chunk, "_"))
+
+  assign("job.name", sprintf("job_%s", id), env = env)
+  assign("log.file", sprintf("job_%s.log", id), env = env)
 
   walk(chunk, function(id) {
       jc = makeJobCollection(id)
