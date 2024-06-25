@@ -49,36 +49,36 @@ reg = loadRegistry(
 # task_ids = task_ids[task_ids != 189356]
 
 # connection to openml often times out
-# task_ids = c(3L, 12L, 31L, 53L, 3917L, 3945L, 7592L, 9952L, 9977L, 9981L, 
-#   10101L, 14965L, 34539L, 146195L, 146212L, 146606L, 146818L, 146821L, 
-#   146822L, 146825L, 167119L, 167120L, 168330L, 168331L, 168332L, 
-#   168337L, 168338L, 168868L, 168908L, 168909L, 168910L, 168911L, 
-#   168912L, 11L, 14L, 15L, 16L, 18L, 22L, 23L, 28L, 29L, 32L, 37L, 
-#   43L, 45L, 49L, 219L, 2074L, 2079L, 3021L, 3549L, 3560L, 3573L, 
-#   3902L, 3903L, 3904L, 3913L, 3918L, 9910L, 9946L, 9957L, 9960L, 
-#   9964L, 9971L, 9976L, 9978L, 9985L, 10093L, 14952L, 14954L, 14969L, 
-#   14970L, 125920L, 146800L, 146817L, 146819L, 146820L, 146824L, 
-#   167124L, 167125L, 167140L, 167141L)
+task_ids = c(3L, 12L, 31L, 53L, 3917L, 3945L, 7592L, 9952L, 9977L, 9981L, 
+  10101L, 14965L, 34539L, 146195L, 146212L, 146606L, 146818L, 146821L, 
+  146822L, 146825L, 167119L, 167120L, 168330L, 168331L, 168332L, 
+  168337L, 168338L, 168868L, 168908L, 168909L, 168910L, 168911L, 
+  168912L, 11L, 14L, 15L, 16L, 18L, 22L, 23L, 28L, 29L, 32L, 37L, 
+  43L, 45L, 49L, 219L, 2074L, 2079L, 3021L, 3549L, 3560L, 3573L, 
+  3902L, 3903L, 3904L, 3913L, 3918L, 9910L, 9946L, 9957L, 9960L, 
+  9964L, 9971L, 9976L, 9978L, 9985L, 10093L, 14952L, 14954L, 14969L, 
+  14970L, 125920L, 146800L, 146817L, 146819L, 146820L, 146824L, 
+  167124L, 167125L, 167140L, 167141L)
 
-# walk(task_ids, function(id) {
-#   try({
-#     otask = otsk(id = id)
-#     task = as_task(otask)
-#     resampling = as_resampling(otask)
+walk(task_ids, function(id) {
+  try({
+    otask = otsk(id = id)
+    task = as_task(otask)
+    resampling = as_resampling(otask)
 
-#     addProblem(
-#       name = otask$data_name,
-#       data = list(task = task, resampling = resampling),
-#       fun = function(data, job, measure, ...) {
-#         c(data, list(measure))
-#       })
+    addProblem(
+      name = otask$data_name,
+      data = list(task = task, resampling = resampling),
+      fun = function(data, job, measure, ...) {
+        c(data, list(measure))
+      })
 
-#     rm(otask)
-#     rm(task)
-#     rm(resampling)
-#     gc()
-#   })
-# })
+    rm(otask)
+    rm(task)
+    rm(resampling)
+    gc()
+  })
+})
 
 pdes = replicate(length(reg$problems), list(data.table(measure = msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_au1p")))))
 pdes = set_names(pdes, reg$problems)
