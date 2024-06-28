@@ -4,14 +4,11 @@
 #PBS -A WYOM0174
 #PBS -j oe
 #PBS -k eod
-#PBS -q develop
-#PBS -l walltime=01:00:00
-#PBS -l select=1:ncpus=128:mem=235GB
+#PBS -q main
+#PBS -l job_priority=economy
+#PBS -l select=1:ncpus=128
+#PBS -l walltime=12:00:00
 #PBS -o <%= log.file %>
-
-### #PBS -q main
-### #PBS -l select=1:ncpus=128
-### #PBS -l walltime=12:00:00
 
 ### Set temp to scratch
 export TMPDIR=/glade/derecho/scratch/${USER}/tmp && mkdir -p ${TMPDIR}
@@ -30,4 +27,8 @@ Rscript -e 'batchtools::doJobCollection("<%= uri_6 %>")' &
 Rscript -e 'batchtools::doJobCollection("<%= uri_7 %>")' &
 Rscript -e 'batchtools::doJobCollection("<%= uri_8 %>")' &
 Rscript -e 'batchtools::doJobCollection("<%= uri_9 %>")' &
-Rscript -e 'batchtools::doJobCollection("<%= uri_10 %>")'
+Rscript -e 'batchtools::doJobCollection("<%= uri_10 %>")' &
+Rscript -e 'batchtools::doJobCollection("<%= uri_11 %>")' &
+Rscript -e 'batchtools::doJobCollection("<%= uri_12 %>")' &
+
+wait

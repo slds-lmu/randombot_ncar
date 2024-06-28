@@ -73,7 +73,7 @@ walk(task_ids, function(id) {
       name = otask$data_name,
       data = list(task = task, resampling = resampling),
       fun = function(data, job, measure, ...) {
-        c(data, list(measure))
+        c(data, list(measure = measure))
       })
 
     rm(otask)
@@ -126,11 +126,21 @@ pdes = set_names(pdes, reg$problems)
 
 # add Algorithms
 run_mbo = function(data, job, instance, learner, ...) {
+
+  fp = file(file.path(job$file.dir, "logs", sprintf("%s.log", job$id)), open = "wt")
+  sink(file = fp, append = TRUE)
+  sink(file = fp, type = "message", append = TRUE)
+  on.exit({ sink(type = "message"); sink(type = "output"); close(fp) }, add = TRUE)
+
   library(mlr3)
   library(mlr3learners)
   library(mlr3tuning)
   library(mlr3mbo)
   library(mlr3pipelines)
+  library(bbotk)
+  library(mlr3misc)
+
+  lgr::get_logger("mlr3")$set_threshold("warn")
 
   inter_result_path = file.path(job$external.dir, sprintf("inter_result_%s.rds", job$id))
 
@@ -139,8 +149,12 @@ run_mbo = function(data, job, instance, learner, ...) {
     man = "bbotk::bbotk.backup",
 
     on_optimizer_after_eval = function(callback, context) {
-      if (file.exists(callback$state$path)) unlink(callback$state$path)
-      saveRDS(context$instance$archive, callback$state$path)
+      start_time = Sys.time()
+      tmp_file = tempfile(tmpdir = job$external.dir, fileext = ".rds")
+      saveRDS(context$instance$archive, tmp_file)
+      unlink(callback$state$path)
+      file.rename(tmp_file, callback$state$path)
+      message(sprintf("Saving intermediate results took %s seconds", difftime(Sys.time(), start_time, units = "s")))
     }
   )
 
@@ -151,8 +165,9 @@ run_mbo = function(data, job, instance, learner, ...) {
   learner$fallback = lrn("classif.featureless", predict_type = "prob")
   learner$timeout = c(train = 3600, predict = 3600)
 
-  options(parallelly.availableCores.system = 10)
+  options(parallelly.availableCores.system = 128)
   options(parallelly.maxWorkers.localhost = Inf)
+  options(mlr3.exec_chunk_bins = 10)
 
   future::plan("multisession", workers = 10)
 
@@ -162,26 +177,30 @@ run_mbo = function(data, job, instance, learner, ...) {
     task = data$task,
     learner = learner,
     resampling = data$resampling,
-    measure = data$measure,
+    measure = instance$measure,
     terminator = trm("evals", n_evals = n_evals),
     callbacks = callback)
 
+  # initial design
+  init_design_size = 0.25 * n_evals
+
   # restore archive
   if (file.exists(inter_result_path)) {
-    message("Intermediate result found")
-    archive = readRDS(inter_result_path)
-    tuning_instance$archive = archive
+    tryCatch({
+      message("Intermediate result found")
+      archive = readRDS(inter_result_path)
+      tuning_instance$archive = archive
+    },
+    error = function(cond) {
+      message("Reading intermediate result failed")
+      init_design = generate_design_lhs(tuning_instance$search_space, n = init_design_size)$data
+      tuning_instance$eval_batch(init_design)
+    }) 
   } else {
     message("Generate initial design")
-    init_design = generate_design_sobol(tuning_instance$search_space, n = 10)$data
+    init_design = generate_design_lhs(tuning_instance$search_space, n = init_design_size)$data
     tuning_instance$eval_batch(init_design)
   }
-
-  # evaluate initial design
-  init_design_size = 0.25 * n_evals
-  init_design = generate_design_lhs(tuning_instance$search_space, n = init_design_size)$data
-
-  tuning_instance$eval_batch(init_design)
 
   # configure mbo
   lrn_mbo = lrn("regr.ranger_mbo",
@@ -200,7 +219,7 @@ run_mbo = function(data, job, instance, learner, ...) {
   surrogate = srlrn(as_learner(po("imputesample", affect_columns = selector_type("logical")) %>>%
     po("imputeoor", multiplier = 3, affect_columns = selector_type(c("integer", "numeric", "character", "factor", "ordered"))) %>>%
     po("colapply", applicator = as.factor, affect_columns = selector_type("character")) %>>%
-    lrn_mbo), catch_errors = FALSE)
+    lrn_mbo), catch_errors = TRUE)
 
   acq_optimizer = acqo(
     optimizer = opt("focus_search", n_points = 1000L, maxit = 9L),
@@ -208,19 +227,19 @@ run_mbo = function(data, job, instance, learner, ...) {
     catch_errors = FALSE
   )
 
-  acq_function = acqf("cb", lambda = 1)
+  acq_function = acqf("cb", lambda = 1, check_values = FALSE)
 
   tuner = tnr("mbo",
     loop_function = bayesopt_ego_log,
     surrogate = surrogate,
     acq_function = acq_function,
     acq_optimizer = acq_optimizer,
-    args = list(random_interleave_iter = 4)
+    args = list(random_interleave_iter = 4, init_design_size = init_design_size)
   )
 
   # run optimization
   tuner$optimize(tuning_instance)
-  instance
+  tuning_instance
 } 
 
 addAlgorithm(
@@ -307,8 +326,9 @@ learners = list(
 tokens = list(
   glmnet = list(
     # Bischl et al. (2021)
-    glmnet.s     = to_tune(1e-4, 1e4, logscale = TRUE),
-    glmnet.alpha = to_tune(0, 1)
+    glmnet.alpha = to_tune(0, 1),
+    # Misc
+    glmnet.lambda = to_tune(p_dbl(1e-4, 1e4, logscale = TRUE))
   ),
 
   kknn = list(
@@ -324,7 +344,7 @@ tokens = list(
     ranger.replace          = to_tune(),
     ranger.sample.fraction  = to_tune(1e-1, 1),
     # van Rijn and Hutter (2018)
-    ranger.min.node.size    = to_tune(1, 50)
+    ranger.min.node.size    = to_tune(1, 50),
     # Misc
     ranger.min.bucket       = to_tune(1, 50)
   ),
@@ -352,7 +372,7 @@ tokens = list(
   catboost = list(
     # Salinas and Erickson (2024)
     catboost.learning_rate                = to_tune(1e-3, 1, logscale = TRUE),
-    catboost.depth                        = to_tune(1, 20),
+    catboost.depth                        = to_tune(1, 16), # catboost has an upper limit of 16
     catboost.l2_leaf_reg                  = to_tune(1e-3, 1e3),
     catboost.max_ctr_complexity           = to_tune(1, 8),
     catboost.grow_policy                  = to_tune(c("SymmetricTree", "Depthwise", "Lossguide")),

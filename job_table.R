@@ -1,4 +1,2 @@
 job_table = getJobTable()
-
-
-job_table["robert", , on = "problem"]
+unnest(job_table, "algo.pars")[1:100]
