@@ -9,7 +9,7 @@ library(mlr3batchmark)
 library(mlr3pipelines)
 library(data.table)
 
-unlink("/glade/derecho/scratch/marcbecker/randombot_ncar/registry", recursive = TRUE)
+# unlink("/glade/derecho/scratch/marcbecker/randombot_ncar/registry", recursive = TRUE)
 
 reg = makeExperimentRegistry(
   file.dir = "/glade/derecho/scratch/marcbecker/randombot_ncar/registry", 
@@ -83,45 +83,9 @@ walk(task_ids, function(id) {
   })
 })
 
-# create multiclass mcc
-MeasureClassifMCC = R6::R6Class("MeasureClassifMCC",
-  inherit = MeasureClassif,
-  public = list(
-    #' @description
-    #' Creates a new instance of this [R6][R6::R6Class] class.
-    initialize = function() {
-      super$initialize(
-        id = "classif.mcc",
-        param_set = ps(),
-        range = c(-1, 1),
-        minimize = FALSE,
-        label = "Matthews Correlation Coefficient",
-        man = "mlr3::mlr_measures_classif.mcc"
-      )
-    }
-  ),
-
-  private = list(
-    .score = function(prediction, ...) {
-      m = table(response = prediction$response, truth = prediction$truth)
-
-      t_sum = rowSums(m)
-      p_sum = colSums(m)
-      n_correct = sum(diag(m))
-      n_samples = sum(p_sum)
-
-      cov_ytyp = n_correct * n_samples - sum(t_sum * p_sum)
-      cov_ypyp = n_samples^2 - sum(p_sum^2)
-      cov_ytyt = n_samples^2 - sum(t_sum^2)
-
-      if (cov_ypyp * cov_ytyt == 0) return(0)
-      cov_ytyp / sqrt(cov_ytyt * cov_ypyp)
-    }
-  )  
-)
-
-measure_mmcc = MeasureClassifMCC$new()
-pdes = replicate(length(reg$problems), list(data.table(measure = msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_au1p", "classif.mcc")))))
+source("MeasureClassifMCC.R")
+msr_mcc = MeasureClassifMCC$new()
+pdes = replicate(length(reg$problems), list(data.table(measure = c(msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_au1p")), msr_mcc))))
 pdes = set_names(pdes, reg$problems)
 
 # add Algorithms
@@ -142,29 +106,37 @@ run_mbo = function(data, job, instance, learner, ...) {
 
   lgr::get_logger("mlr3")$set_threshold("warn")
 
+  # backup callback
   inter_result_path = file.path(job$external.dir, sprintf("inter_result_%s.rds", job$id))
-
-  callback = callback_batch_tuning("bbotk.backup",
+  callback_backup = callback_batch_tuning("bbotk.backup",
     label = "Backup Archive Callback",
     man = "bbotk::bbotk.backup",
 
     on_optimizer_after_eval = function(callback, context) {
       start_time = Sys.time()
       tmp_file = tempfile(tmpdir = job$external.dir, fileext = ".rds")
-      saveRDS(context$instance$archive, tmp_file)
+      saveRDS(context$instance$archive$data, tmp_file)
       unlink(callback$state$path)
       file.rename(tmp_file, callback$state$path)
       message(sprintf("Saving intermediate results took %s seconds", difftime(Sys.time(), start_time, units = "s")))
     }
   )
+  callback_backup$state$path = inter_result_path
 
-  callback$state$path = inter_result_path
+  # measure callback
+  source("MeasureClassifMCC.R")
+  msr_mcc = MeasureClassifMCC$new()
+  extra_measures = c(msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_au1p")), msr_mcc)
+  extra_measures = extra_measures[map_chr(extra_measures, "id") %nin% instance$measure$id]
+  callback_measures = clbk("mlr3tuning.measures", measures = extra_measures)
 
+  # prepare learner
   learner$predict_type = "prob"
   learner$encapsulate = c(train = "callr", predict = "callr")
   learner$fallback = lrn("classif.featureless", predict_type = "prob")
   learner$timeout = c(train = 3600, predict = 3600)
 
+  # parallel options
   options(parallelly.availableCores.system = 128)
   options(parallelly.maxWorkers.localhost = Inf)
   options(mlr3.exec_chunk_bins = 10)
@@ -179,7 +151,9 @@ run_mbo = function(data, job, instance, learner, ...) {
     resampling = data$resampling,
     measure = instance$measure,
     terminator = trm("evals", n_evals = n_evals),
-    callbacks = callback)
+    callbacks = list(callback_backup, callback_measures),
+    store_benchmark_result = FALSE,
+    store_models = FALSE)
 
   # initial design
   init_design_size = 0.25 * n_evals
