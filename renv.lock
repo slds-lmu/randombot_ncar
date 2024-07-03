@@ -2677,16 +2677,15 @@
     },
     "mlr3learners": {
       "Package": "mlr3learners",
-      "Version": "0.6.0.9000",
+      "Version": "0.7.0.9000",
       "Source": "GitHub",
-      "Remotes": "mlr-org/mlr3",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "mlr3learners",
       "RemoteUsername": "mlr-org",
       "RemotePkgRef": "mlr-org/mlr3learners",
       "RemoteRef": "HEAD",
-      "RemoteSha": "e54589eed4b4a6d86b5328c7686c0044361408dc",
+      "RemoteSha": "43b3dccc6e2fa8eaad7d6ece757ef220237a2aa9",
       "Requirements": [
         "R",
         "R6",
@@ -2696,7 +2695,7 @@
         "mlr3misc",
         "paradox"
       ],
-      "Hash": "922a31bb67b323942c3df84925a6820a"
+      "Hash": "0698425a23ec251d19432791051704e6"
     },
     "mlr3mbo": {
       "Package": "mlr3mbo",
