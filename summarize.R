@@ -10,9 +10,9 @@ reg = loadRegistry(
   writeable = FALSE)
 
 job_table = getJobTable()
-job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:105]
+job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:35]
 job_table[, learner_id := map_chr(learner, "id")]
-job_table[, measure_id := map_chr(measure, "id")]
+
 
 job_table_learner = split(job_table, job_table$learner_id)
 
@@ -30,14 +30,14 @@ iwalk(job_table_learner, function(tab, name) {
       data = data.table()
     }
 
-    data[, task_id := job$instance$task$id]
-    data[, measure_id := job$instance$measure$id]
+    data[, task := job$instance$task$id]
     data[, job_id := job_id]
-    data[, learner_id := name]
+    data[, learner := name]
+    data[, measure := job$instance$measure]
     data
   })
   super_archive = rbindlist(super_archive, fill = TRUE, use.names = TRUE)
-  setcolorder(super_archive, c("job_id", "task_id", "measure_id", "batch_nr", "errors", "warnings", "classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_aunu", "classif.mcc"))
+  setcolorder(super_archive, c("job_id", "learner", "task", "measure", "batch_nr", "errors", "warnings", "ce", "bacc", "logloss", "auc", "mcc"))
 
   fwrite(super_archive, sprintf("results/super_archive_%s.csv", name))
 })
@@ -57,23 +57,17 @@ iwalk(job_table_learner, function(tab, name) {
       data = data.table()
     }
 
-    data[, task_id := job$instance$task$id]
-    data[, measure_id := job$instance$measure$id]
+    data[, task := job$instance$task$id]
     data[, job_id := job_id]
-    data[, learner_id := name]
+    data[, learner := name]
+    data[, measure := job$instance$measure]
     data
   })
   best = rbindlist(best, fill = TRUE, use.names = TRUE)
-  setcolorder(best, c("job_id", "task_id", "measure_id", "batch_nr", "errors", "warnings", "classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_aunu", "classif.mcc"))
+  setcolorder(best, c("job_id", "learner", "task", "measure", "batch_nr", "errors", "warnings", "ce", "bacc", "logloss", "auc", "mcc"))
 
   fwrite(best, sprintf("results/best_%s.csv", name))
 })
-
-# runtime
-job_table[, used_time := unclass(time.running / (3600 * 12))]
-job_table = job_table[, list(job.id, time.running, used_time, learner_id, problem, measure_id)]
-job_table[order(used_time)]
-job_table_learner = split(job_table, job_table$learner_id)
 
 # error rate
 super_archive = map(list.files("results", "super_archive", full.names = TRUE), function(path) {

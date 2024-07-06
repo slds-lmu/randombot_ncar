@@ -28,10 +28,7 @@ source("algorithms.R")
 source("experiments.R")
 
 
-
 job_ids = setdiff(findNotDone()$job.id, findRunning()$job.id)
-
-#job_ids = c(62, job_ids)
 
 chunks = split(job_ids, ceiling(seq_along(job_ids) / 12))
 
@@ -46,7 +43,7 @@ walk(chunks[1], function(chunk) {
   hash = sprintf("%s_%s", time, str_collapse(chunk, "_"))
 
   assign("job.name", sprintf("job_%s", hash), env = env)
-  assign("log.file", sprintf("job_%s.log", hash), env = env)
+  assign("log.file", sprintf("logs_nodes/job_%s.log", hash), env = env)
 
   iwalk(chunk, function(id, i) {
       jc = makeJobCollection(id)

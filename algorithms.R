@@ -33,7 +33,33 @@ run_mbo = function(data, job, instance, learner, ...) {
   )
   callback_backup$state$path = inter_result_path
 
-  # measure callback
+  # prepare learner
+  learner$predict_type = "prob"
+  learner$encapsulate = c(train = "callr", predict = "callr")
+  learner$fallback = lrn("classif.featureless", predict_type = "prob")
+  learner$timeout = c(train = 3600, predict = 3600)
+
+  # measure
+  source("MeasureClassifMCC.R")
+  msr_mcc = MeasureClassifMCC$new()
+  msr_mcc$id = "mcc"
+
+  measures = if ("twoclass" %in% data$task$properties) {
+    list(
+      "ce" = msr("classif.ce", id = "ce"),
+      "bacc" = msr("classif.bacc", id = "bacc"),
+      "logloss" = msr("classif.logloss", id = "logloss"),
+      "auc" = msr("classif.auc", id = "auc"),
+      "mcc" =  msr_mcc)
+  } else {
+    list(
+      "ce" = msr("classif.ce", id = "ce"),
+      "bacc" = msr("classif.bacc", id = "bacc"),
+      "logloss" = msr("classif.logloss", id = "logloss"),
+      "auc" = msr("classif.mauc_mu", id = "auc"),
+      "mcc" =  msr_mcc)
+  }
+
   callback_measures = callback_batch_tuning("mlr3tuning.measures",
     label = "Additional Measures Callback",
     man = "mlr3tuning::mlr3tuning.measures",
@@ -43,79 +69,62 @@ run_mbo = function(data, job, instance, learner, ...) {
     }
   )
 
-  source("MeasureClassifMCC.R")
-  msr_mcc = MeasureClassifMCC$new()
-  extra_measures = c(msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_aunu")), list("classif.mcc" = msr_mcc))
-  extra_measures = extra_measures[names(extra_measures) %nin% instance$measure$id]
-  callback_measures$state$ids = names(extra_measures)
+  extra_measures = measures[setdiff(names(measures), instance$measure)]
   callback_measures$state$measures = extra_measures
-
-  # prepare learner
-  learner$predict_type = "prob"
-  learner$encapsulate = c(train = "callr", predict = "callr")
-  learner$fallback = lrn("classif.featureless", predict_type = "prob")
-  learner$timeout = c(train = 3600, predict = 3600)
+  callback_measures$state$ids = names(extra_measures)
 
   # early stopping metrics
-  n_classes = length(data$task$class_names)
-  source("custom_measures.R", local = TRUE)
   if (learner$id == "catboost") {
     metric = if ("twoclass" %in% data$task$properties) {
-      switch(instance$measure$id,
-        "classif.ce" = "Accuracy",
-        "classif.bacc" = "BalancedAccuracy",
-        "classif.logloss" = "Logloss",
-        "classif.mauc_aunu" = "AUC",
-        "classif.mcc" =  "MCC")
+      switch(instance$measure,
+        "ce" = "Accuracy",
+        "bacc" = "BalancedAccuracy",
+        "logloss" = "Logloss",
+        "auc" = "AUC",
+        "mcc" =  "MCC")
       } else {
-      switch(instance$measure$id,
-        "classif.ce" = "Accuracy:use_weights:false",
-        "classif.bacc" = "Accuracy",
-        "classif.logloss" = "MultiClass",
-        "classif.mauc_aunu" = "AUC:type=Mu",
-        "classif.mcc" =  "MCC")
+      switch(instance$measure,
+        "ce" = "Accuracy:use_weights=false",
+        "bacc" = "Accuracy",
+        "logloss" = "MultiClass",
+        "auc" = "AUC:type=Mu",
+        "mcc" =  "MCC")
       }
     learner$param_set$set_values(catboost.eval_metric = metric)
   } else if (learner$id == "xgboost") {
     metric = if ("twoclass" %in% data$task$properties) {
-      switch(instance$measure$id,
-        "classif.ce" = "error",
-        "classif.bacc" = xgboost_bacc_binary,
-        "classif.logloss" = "logloss",
-        "classif.mauc_aunu" = "auc",
-        "classif.mcc" =  xgboost_mcc_binary)
+      switch(instance$measure,
+        "ce" = "error",
+        "bacc" = msr("classif.bacc"),
+        "logloss" = "logloss",
+        "auc" = "auc",
+        "mcc" =  msr_mcc)
       } else {
-      switch(instance$measure$id,
-        "classif.ce" = "merror",
-        "classif.bacc" = xgboost_bacc_multiclass,
-        "classif.logloss" = "mlogloss",
-        "classif.mauc_aunu" = "auc",
-        "classif.mcc" =  xgboost_mcc_multiclass)
+      switch(instance$measure,
+        "ce" = "merror",
+        "bacc" = msr("classif.bacc"),
+        "logloss" = "mlogloss",
+        "auc" = msr("classif.mauc_mu"),
+        "mcc" =  msr_mcc)
       }
-
-    if (is.function(metric)) {
-      learner$param_set$set_values(xgboost.feval = metric, xgboost.maximize = TRUE) 
-    } else {
-      learner$param_set$set_values(xgboost.eval_metric = metric) 
-    }
-
+    learner$param_set$set_values(xgboost.eval_metric = metric)
   } else if (learner$id == "lightgbm") {
     metric = if ("twoclass" %in% data$task$properties) {
-      switch(instance$measure$id,
-        "classif.ce" = "binary_error",
-        "classif.bacc" = lightgbm_bacc_binary,
-        "classif.logloss" = "binary_logloss",
-        "classif.mauc_aunu" = "auc",
-        "classif.mcc" =  lightgbm_mcc_binary)
+      switch(instance$measure,
+        "ce" = "binary_error",
+        "bacc" = msr("classif.bacc"),
+        "logloss" = "binary_logloss",
+        "auc" = "auc",
+        "mcc" =  msr_mcc)
     } else {
-      switch(instance$measure$id,
-        "classif.ce" = "merror",
-        "classif.bacc" = lightgbm_bacc_multiclass,
-        "classif.logloss" = "multi_logloss",
-        "classif.mauc_aunu" = lightgbm_mauc_aunu,
-        "classif.mcc" =  lightgbm_mcc_multiclass)
-    }
-    learner$param_set$set_values(lightgbm.eval = metric)
+      switch(instance$measure,
+        "ce" = "multi_error",
+        "bacc" = msr("classif.bacc"),
+        "logloss" = "multi_logloss",
+        "auc" = msr("classif.mauc_mu"),
+        "mcc" =  msr_mcc)
+      }
+    learner$param_set$set_values(lightgbm.eval = list(metric))
   }
 
   # parallel options
@@ -131,7 +140,7 @@ run_mbo = function(data, job, instance, learner, ...) {
     task = data$task,
     learner = learner,
     resampling = data$resampling,
-    measure = instance$measure,
+    measure = measures[[instance$measure]],
     terminator = trm("evals", n_evals = n_evals),
     callbacks = list(callback_backup, callback_measures),
     store_benchmark_result = FALSE,

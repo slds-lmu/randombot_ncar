@@ -100,3 +100,5 @@ registry/
 TODO
 logs/
 logs
+logs_nodes/
+core

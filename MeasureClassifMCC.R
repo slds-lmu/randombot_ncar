@@ -13,12 +13,10 @@ MeasureClassifMCC = R6::R6Class("MeasureClassifMCC",
         label = "Matthews Correlation Coefficient",
         man = "mlr3::mlr_measures_classif.mcc"
       )
-    }
-  ),
+    },
 
-  private = list(
-    .score = function(prediction, ...) {
-      m = table(response = prediction$response, truth = prediction$truth)
+    fun = function(truth, response, ...) {
+      m = table(response = response, truth = truth)
 
       t_sum = rowSums(m)
       p_sum = colSums(m)
@@ -31,6 +29,12 @@ MeasureClassifMCC = R6::R6Class("MeasureClassifMCC",
 
       if (cov_ypyp * cov_ytyt == 0) return(0)
       cov_ytyp / sqrt(cov_ytyt * cov_ypyp)
+    }
+  ),
+
+  private = list(
+    .score = function(prediction, ...) {
+      self$fun(truth = prediction$truth, response = prediction$response)
     }
   )  
 )

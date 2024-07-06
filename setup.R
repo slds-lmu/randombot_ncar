@@ -1,10 +1,11 @@
 renv::install(c(
-    "mlr-org/mlr3", 
+    "mlr-org/mlr3@mauc",
+    "mlr-org/mlr3measures@mauc",
     "mlr-org/bbotk", 
     "mlr-org/mlr3tuning", 
-    "mlr-org/mlr3pipelines@feat/inner_valid", 
+    "mlr-org/mlr3pipelines", 
     "mlr-org/paradox", 
-    "mlr-org/mlr3learners", 
+    "mlr-org/mlr3learners@internal_measure", 
     "mlr-org/mlr3extralearners@inner_valid", 
     "mlr-org/mlr3mbo@randombot_ncar",
     "lhs"))

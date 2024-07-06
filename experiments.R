@@ -1,7 +1,5 @@
 # problem pars
-source("MeasureClassifMCC.R")
-msr_mcc = MeasureClassifMCC$new()
-pdes = replicate(length(reg$problems), list(data.table(measure = c(msrs(c("classif.ce", "classif.bacc", "classif.logloss", "classif.mauc_aunu")), msr_mcc))))
+pdes = replicate(length(reg$problems), list(data.table(measure = c("ce", "bacc", "logloss", "auc", "mcc"))))
 pdes = set_names(pdes, reg$problems)
 
 # algorithm pars
