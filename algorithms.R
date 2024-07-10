@@ -1,6 +1,6 @@
 run_mbo = function(data, job, instance, learner, ...) {
 
-  fp = file(file.path(job$file.dir, "logs", sprintf("%s.log", job$id)), open = "wt")
+  fp = file(file.path(job$file.dir, "logs", sprintf("%s.log", job$id)), open = "at")
   sink(file = fp, append = TRUE)
   sink(file = fp, type = "message", append = TRUE)
   on.exit({ sink(type = "message"); sink(type = "output"); close(fp) }, add = TRUE)
@@ -84,7 +84,7 @@ run_mbo = function(data, job, instance, learner, ...) {
         "mcc" =  "MCC")
       } else {
       switch(instance$measure,
-        "ce" = "Accuracy:use_weights=false",
+        "ce" = "Accuracy",
         "bacc" = "Accuracy",
         "logloss" = "MultiClass",
         "auc" = "AUC:type=Mu",
@@ -152,19 +152,25 @@ run_mbo = function(data, job, instance, learner, ...) {
   # restore archive
   if (file.exists(inter_result_path)) {
     tryCatch({
-      message("Intermediate result found")
+      message("Intermediate results found")
       archive = readRDS(inter_result_path)
       tuning_instance$archive$data = archive
     },
     error = function(cond) {
-      message("Reading intermediate result failed")
-      init_design = generate_design_lhs(tuning_instance$search_space, n = init_design_size)$data
-      tuning_instance$eval_batch(init_design)
+      message("Reading intermediate results failed")
     }) 
   } else {
-    message("Generate initial design")
+    message("No intermediate results found")
+  }
+
+
+  # evaluate init design in batches of size 1 to get checkpoints
+  if (tuning_instance$archive$n_evals < init_design_size) {
     init_design = generate_design_lhs(tuning_instance$search_space, n = init_design_size)$data
-    tuning_instance$eval_batch(init_design)
+
+    walk(seq(tuning_instance$archive$n_evals + 1, init_design_size), function(i) {
+      tuning_instance$eval_batch(init_design[i])
+    })
   }
 
   # configure mbo
