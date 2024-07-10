@@ -69,8 +69,28 @@ iwalk(job_table_learner, function(tab, name) {
   fwrite(best, sprintf("results/best_%s.csv", name))
 })
 
-# error rate
-super_archive = map(list.files("results", "super_archive", full.names = TRUE), function(path) {
+# misc
+super_archives = map(list.files("results", "super_archive", full.names = TRUE), function(path) {
   data = fread(path)
-  data[, sum(errors)]
 })
+
+runtime = map_dtr(super_archives, function(super_archive) {
+  super_archive[, list(
+    min_runtime = min(runtime_learners, na.rm = TRUE) / 10 , 
+    mean_runtime = median(runtime_learners, na.rm = TRUE) / 10, 
+    max_runtime = max(runtime_learners, na.rm = TRUE) / 10, 
+    total_runtime = sum(runtime_learners, na.rm = TRUE) / 10 / 60,
+    total_config = .N,
+    total_errors = sum(errors)), by = list(learner, task, measure)]
+})
+
+fwrite(runtime, "results/runtime.csv")
+
+# iterations
+catboost_boosting = super_archives[[1]][, list(min_iterations = min(catboost.iterations, na.rm = TRUE), mean_iterations = median(catboost.iterations, na.rm = TRUE), max_iterations =  max(catboost.iterations, na.rm = TRUE)), by = .(learner, task, measure)]
+lightgbm_boosting = super_archives[[4]][, list(min_iterations = min(lightgbm.num_iterations, na.rm = TRUE), mean_iterations = median(lightgbm.num_iterations, na.rm = TRUE), max_iterations =  max(lightgbm.num_iterations, na.rm = TRUE)), by = .(learner, task, measure)]
+xgboost_boosting = super_archives[[7]][, list(min_iterations = min(xgboost.nrounds, na.rm = TRUE), mean_iterations = median(xgboost.nrounds, na.rm = TRUE), max_iterations =  max(xgboost.nrounds, na.rm = TRUE)), by = .(learner, task, measure)]
+
+boosting = rbindlist(list(catboost_boosting, lightgbm_boosting, xgboost_boosting), fill = TRUE, use.names = TRUE)
+
+fwrite(boosting, "results/boosting.csv")
