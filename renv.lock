@@ -2663,7 +2663,7 @@
       "RemoteUsername": "mlr-org",
       "RemotePkgRef": "mlr-org/mlr3extralearners@inner_valid",
       "RemoteRef": "inner_valid",
-      "RemoteSha": "6d7adbfd1b866746754134ed2f7f0f456799d11d",
+      "RemoteSha": "dae20cafb07f1395dfce91b373e4233ad0059348",
       "Requirements": [
         "R",
         "R6",
@@ -2674,7 +2674,7 @@
         "mlr3misc",
         "paradox"
       ],
-      "Hash": "cdb9fa897d5ccd403458f5b50eed8f18"
+      "Hash": "b3e6ed9452b7962dabfa4189e6fa19f1"
     },
     "mlr3learners": {
       "Package": "mlr3learners",
@@ -2686,7 +2686,7 @@
       "RemoteUsername": "mlr-org",
       "RemotePkgRef": "mlr-org/mlr3learners@internal_measure",
       "RemoteRef": "internal_measure",
-      "RemoteSha": "e6cf7ebb518d0ac070a4b62df85eabb72b9364bd",
+      "RemoteSha": "8ed15f5a7a1b1140c0b8fcc1530b2ddf1abf8fd8",
       "Requirements": [
         "R",
         "R6",
@@ -2696,7 +2696,7 @@
         "mlr3misc",
         "paradox"
       ],
-      "Hash": "42d5b60a4d3651c2bb57eb7a54165640"
+      "Hash": "605ce48d13670579ac3619343afda4cb"
     },
     "mlr3mbo": {
       "Package": "mlr3mbo",
@@ -2709,7 +2709,7 @@
       "RemoteUsername": "mlr-org",
       "RemotePkgRef": "mlr-org/mlr3mbo@randombot_ncar",
       "RemoteRef": "randombot_ncar",
-      "RemoteSha": "c89b479bb0e2e1b9b851d361ff2a1e058735dcfc",
+      "RemoteSha": "994752b8991629f60672bc8e3885a3c256ca002b",
       "Requirements": [
         "R",
         "R6",
@@ -2723,7 +2723,7 @@
         "paradox",
         "spacefillr"
       ],
-      "Hash": "9a5640f96e5893fdacfaf539abb446a9"
+      "Hash": "547b8b14096488ab05a14ecc158f09c4"
     },
     "mlr3measures": {
       "Package": "mlr3measures",

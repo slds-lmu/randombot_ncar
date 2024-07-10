@@ -10,9 +10,8 @@ reg = loadRegistry(
   writeable = FALSE)
 
 job_table = getJobTable()
-job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:35]
+job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:105]
 job_table[, learner_id := map_chr(learner, "id")]
-
 
 job_table_learner = split(job_table, job_table$learner_id)
 
@@ -69,8 +68,3 @@ iwalk(job_table_learner, function(tab, name) {
   fwrite(best, sprintf("results/best_%s.csv", name))
 })
 
-# error rate
-super_archive = map(list.files("results", "super_archive", full.names = TRUE), function(path) {
-  data = fread(path)
-  data[, sum(errors)]
-})
