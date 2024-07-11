@@ -153,8 +153,8 @@ run_mbo = function(data, job, instance, learner, ...) {
   if (file.exists(inter_result_path)) {
     tryCatch({
       message("Intermediate results found")
-      archive = readRDS(inter_result_path)
-      tuning_instance$archive$data = archive
+      data = readRDS(inter_result_path)
+      tuning_instance$archive$data = data
     },
     error = function(cond) {
       message("Reading intermediate results failed")
@@ -181,7 +181,7 @@ run_mbo = function(data, job, instance, learner, ...) {
     splitrule = "extratrees",
     num.random.splits = 1L,
     num.trees = 10L,
-    replace = TRUE,
+    replace = FALSE,
     sample.fraction = 1,
     min.node.size = 1,
     mtry.ratio = 1
@@ -193,19 +193,19 @@ run_mbo = function(data, job, instance, learner, ...) {
     lrn_mbo), catch_errors = TRUE)
 
   acq_optimizer = acqo(
-    optimizer = opt("focus_search", n_points = 1000L, maxit = 9L),
+    optimizer = opt("random_search", batch_size = 1000L),
     terminator = trm("evals", n_evals = 20000L),
     catch_errors = FALSE
   )
 
-  acq_function = acqf("cb", lambda = 1, check_values = FALSE)
+  acq_function = acqf("log_ei", check_values = FALSE)
 
   tuner = tnr("mbo",
     loop_function = bayesopt_ego_log,
     surrogate = surrogate,
     acq_function = acq_function,
     acq_optimizer = acq_optimizer,
-    args = list(random_interleave_iter = 4, init_design_size = init_design_size)
+    args = list(init_design_size = init_design_size)
   )
 
   # run optimization

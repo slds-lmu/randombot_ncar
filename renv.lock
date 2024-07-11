@@ -2700,16 +2700,15 @@
     },
     "mlr3mbo": {
       "Package": "mlr3mbo",
-      "Version": "0.2.3",
+      "Version": "0.2.3.9000",
       "Source": "GitHub",
-      "Remotes": "mlr-org/mlr3tuning, mlr-org/bbotk",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "mlr3mbo",
       "RemoteUsername": "mlr-org",
-      "RemotePkgRef": "mlr-org/mlr3mbo@randombot_ncar",
-      "RemoteRef": "randombot_ncar",
-      "RemoteSha": "994752b8991629f60672bc8e3885a3c256ca002b",
+      "RemotePkgRef": "mlr-org/mlr3mbo@so_config_2",
+      "RemoteRef": "so_config_2",
+      "RemoteSha": "9bbc6987080553ba351c84dc894788339e08c927",
       "Requirements": [
         "R",
         "R6",
@@ -2723,7 +2722,7 @@
         "paradox",
         "spacefillr"
       ],
-      "Hash": "547b8b14096488ab05a14ecc158f09c4"
+      "Hash": "8ff4531bba5c65777ddb7942a9326631"
     },
     "mlr3measures": {
       "Package": "mlr3measures",

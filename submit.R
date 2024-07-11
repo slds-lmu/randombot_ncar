@@ -16,17 +16,16 @@ library(data.table)
 # reg = makeExperimentRegistry(
 #   file.dir = "/glade/derecho/scratch/marcbecker/randombot_ncar/registry", 
 #   conf.file = "batchtools.conf.R",
-#   seed = 1)
+#   seed = 7832)
 
 reg = loadRegistry(
   file.dir = "/glade/derecho/scratch/marcbecker/randombot_ncar/registry", 
   conf.file = "batchtools.conf.R",
   writeable = TRUE)
 
-source("problems.R")
-source("algorithms.R")
-source("experiments.R")
-
+# source("problems.R")
+# source("algorithms.R")
+# source("experiments.R")
 
 job_ids = setdiff(findNotDone()$job.id, findRunning()$job.id)
 
