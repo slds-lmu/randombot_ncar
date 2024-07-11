@@ -7,6 +7,6 @@ renv::install(c(
     "mlr-org/paradox", 
     "mlr-org/mlr3learners@internal_measure", 
     "mlr-org/mlr3extralearners@inner_valid", 
-    "mlr-org/mlr3mbo@randombot_ncar",
+    "mlr-org/mlr3mbo@so_config_2",
     "lhs"))
 renv::snapshot()

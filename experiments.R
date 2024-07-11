@@ -11,7 +11,7 @@ lrn_glmnet = as_learner(po("removeconstants", id = "glmnet_removeconstants") %>>
   po("fixfactors", id = "glmnet_fixfactors") %>>%
   po("imputesample", affect_columns = selector_type(c("factor", "ordered")), id = "glmnet_imputesample") %>>%
   po("collapsefactors", target_level_count = 100, id = "glmnet_collapse") %>>%
-  po("encode", method = "one-hot", id = "glmnet_encode") %>>%
+  po("encodeimpact", id = "glmnet_encode") %>>%
   po("removeconstants", id = "glmnet_post_removeconstants") %>>%
   lrn("classif.glmnet", id = "glmnet"))
 lrn_glmnet$id = "glmnet"
@@ -44,7 +44,7 @@ lrn_svm = as_learner(po("removeconstants", id = "svm_removeconstants") %>>%
   po("fixfactors", id = "svm_fixfactors") %>>%
   po("imputesample", affect_columns = selector_type(c("factor", "ordered")), id = "svm_imputesample") %>>%
   po("collapsefactors", target_level_count = 100, id = "svm_collapse") %>>%
-  po("encode", method = "one-hot", id = "smv_encode") %>>%
+  po("encodeimpact", id = "smv_encode") %>>%
   po("removeconstants", id = "svm_post_removeconstants") %>>%
   lrn("classif.svm", id = "svm", type = "C-classification"))
 lrn_svm$id = "svm"
