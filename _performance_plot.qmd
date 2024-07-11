@@ -1,0 +1,51 @@
+
+```{r}
+#| layout-ncol: 6
+#| out-width: 100%
+#| column: page
+#| echo: false
+#| fig-asp: 2
+#| fig-subcap: 
+#|  - "Classification Error"
+#|  - "Balanced Accuracy"
+#|  - "Logarithmic Loss"
+#|  - "Area Under the ROC Curve"
+#|  - "Matthews Correlation Coefficient"
+#|  - " "
+data = incumbent[task == task_id & measure == "best_ce"]
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.position = "none")
+
+data = incumbent[task == task_id & measure == "best_bacc"]
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.position = "none")
+
+data = incumbent[task == task_id & measure == "best_logloss"]
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.position = "none")
+
+data = incumbent[task == task_id & measure == "best_auc"]
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.position = "none")
+
+data = incumbent[task == task_id & measure == "best_mcc"]
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.position = "none")
+
+legend = ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line(linewidth = 3) +
+  theme_minimal(base_size = 35) +
+  theme(legend.key.size = unit(3, 'cm'))
+
+ggpubr::as_ggplot(ggpubr::get_legend(legend))
+```

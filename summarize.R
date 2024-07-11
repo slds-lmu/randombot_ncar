@@ -93,3 +93,44 @@ xgboost_boosting = super_archives[[7]][, list(min_iterations = min(xgboost.nroun
 boosting = rbindlist(list(catboost_boosting, lightgbm_boosting, xgboost_boosting), fill = TRUE, use.names = TRUE)
 
 fwrite(boosting, "results/boosting.csv")
+
+# incumbent
+super_archive = map_dtr(list.files("results", "super_archive", full.names = TRUE), function(path) {
+  data = fread(path)
+  data[, list(learner, task, measure, ce, bacc, logloss, auc, mcc)]
+})
+
+incumbent_ce = super_archive["ce", , on = "measure"][, best_ce := cummin(ce), by = .(learner, task, measure)]
+incumbent_ce = incumbent_ce[, batch := seq(.N), by = .(learner, task, measure)][, list(learner, task, batch, best_ce)]
+
+incumbent_bacc = super_archive["bacc", , on = "measure"][, best_bacc := cummax(bacc), by = .(learner, task, measure)]
+incumbent_bacc = incumbent_bacc[, batch := seq(.N), by = .(learner, task, measure)][, list(learner, task, batch, best_bacc)]
+
+incumbent_logloss = super_archive["logloss", , on = "measure"][, best_logloss := cummin(logloss), by = .(learner, task, measure)]
+incumbent_logloss = incumbent_logloss[, batch := seq(.N), by = .(learner, task, measure)][, list(learner, task, batch, best_logloss)]
+
+incumbent_auc = super_archive["auc", , on = "measure"][, best_auc := cummax(auc), by = .(learner, task, measure)]
+incumbent_auc = incumbent_auc[, batch := seq(.N), by = .(learner, task, measure)][, list(learner, task, batch, best_auc)]
+
+incumbent_mcc = super_archive["mcc", , on = "measure"][, best_mcc := cummax(mcc), by = .(learner, task, measure)]
+incumbent_mcc = incumbent_mcc[, batch := seq(.N), by = .(learner, task, measure)][, list(learner, task, batch, best_mcc)]
+
+incumbent = rbindlist(list(incumbent_ce, incumbent_bacc, incumbent_logloss, incumbent_auc, incumbent_mcc), fill = TRUE, use.names = TRUE)
+
+incumbent = melt(incumbent, id.vars = c("learner", "task", "batch"), measure.vars = c("best_ce", "best_bacc", "best_logloss", "best_auc", "best_mcc"), variable.name = "measure", value.name = "score")
+incumbent = incumbent[!is.na(score)]
+
+library(ggplot2)
+
+
+# incumbent over iterations
+data = incumbent[task == "ilpd"]
+data = data[!is.na(score)]
+
+
+fwrite(incumbent, "results/incumbent.csv")
+
+
+ggplot(data, aes(x = batch, y = score, color = learner)) + 
+  geom_line() + 
+  facet_wrap(~measure, scales = "free_y")

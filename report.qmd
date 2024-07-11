@@ -21,6 +21,7 @@ knitr:
 ```{r}
 #| include: false
 library(data.table)
+library(ggplot2)
 ```
 
 # Tasks
@@ -29,9 +30,9 @@ library(data.table)
 #| echo: false
 #| column: page
 tasks = fread("results/tasks.csv")
+tasks = tasks[, -"task_id"]
 knitr::kable(tasks, format.args = list(big.mark = ","),
   col.names = c(
-    "ID",
     "Task",
     "Classes",
     "Features",
@@ -213,3 +214,37 @@ boosting = fread("results/boosting.csv")
 
 knitr::kable(boosting, digits = 0)
 ```
+
+# Performance
+
+```{r}
+#| echo: false
+incumbent = fread("results/incumbent.csv")
+```
+
+## blood-transfusion-service-center
+
+```{r}
+#| echo: false
+task_id = "blood-transfusion-service-center"
+```
+
+{{< include _performance_plot.qmd >}}
+
+## balance-scale
+
+```{r}
+#| echo: false
+task_id = "balance-scale"
+```
+
+{{< include _performance_plot.qmd >}}
+
+## ilpd 
+
+```{r}
+#| echo: false
+task_id = "ilpd"
+```
+
+{{< include _performance_plot.qmd >}}
