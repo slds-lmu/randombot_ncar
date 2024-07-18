@@ -33,7 +33,7 @@ chunks = split(job_ids, ceiling(seq_along(job_ids) / 12))
 
 time = format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 
-walk(chunks[1], function(chunk) {
+walk(chunks[1:4], function(chunk) {
   env = new.env()
   set(reg$status, i = chunk, j = "started", value = NA_integer_)
   set(reg$status, i = chunk, j = "done", value = NA_integer_)

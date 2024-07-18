@@ -24,11 +24,21 @@ iwalk(job_table_learner, function(tab, name) {
     if (job_id %in% job_ids_done) {
       instance = loadResult(job_id)
       data = as.data.table(instance$archive)
+
       if ("internal_tuned_values" %in% names(data)) {
         data = unnest(data, "internal_tuned_values")
         id = instance$archive$internal_search_space$ids()
         data[, paste0("x_domain_", id) := .SD[[id]]]
       }
+
+      # fix parameter names
+      param_ids = c(instance$archive$cols_x, instance$archive$internal_search_space$ids())
+      setnames(data, param_ids, gsub(paste0(name, "\\."), "", param_ids))
+      x_domain_ids = grep("x_domain_", names(data), value = TRUE)
+      new_x_domain_ids = gsub(paste0(name, "\\."), "", x_domain_ids)
+      setnames(data, x_domain_ids, new_x_domain_ids)
+      data
+
     } else {
       data = data.table()
     }
@@ -56,11 +66,21 @@ iwalk(job_table_learner, function(tab, name) {
       instance = loadResult(job_id)
       data = instance$archive$best()
       data = unnest(data, "x_domain", prefix = "x_domain_")
+
       if ("internal_tuned_values" %in% names(data)) {
         data = unnest(data, "internal_tuned_values")
         id = instance$archive$internal_search_space$ids()
         data[, paste0("x_domain_", id) := .SD[[id]]]
       }
+
+      # fix parameter names
+      param_ids = c(instance$archive$cols_x, instance$archive$internal_search_space$ids())
+      setnames(data, param_ids, gsub(paste0(name, "\\."), "", param_ids), skip_absent=TRUE)
+      x_domain_ids = grep("x_domain_", names(data), value = TRUE)
+      new_x_domain_ids = gsub(paste0(name, "\\."), "", x_domain_ids)
+      setnames(data, x_domain_ids, new_x_domain_ids)
+      data
+
     } else {
       data = data.table()
     }
