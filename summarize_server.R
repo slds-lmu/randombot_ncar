@@ -10,7 +10,7 @@ reg = loadRegistry(
   writeable = FALSE)
 
 job_table = getJobTable()
-job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:492]
+job_table = unnest(job_table, c("algo.pars", "prob.pars"))[1:730]
 job_table[, learner_id := map_chr(learner, "id")]
 
 job_table_learner = split(job_table, job_table$learner_id)
