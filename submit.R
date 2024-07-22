@@ -27,13 +27,17 @@ reg = loadRegistry(
 # source("algorithms.R")
 # source("experiments.R")
 
+# job_table = unnest(getJobTable(), "algo.pars")
+# job_table[, learner_id := map(learner, "id")]
+# job_ids2 = job_table[learner_id == "lightgbm" & problem %in% c("balance-scale", "analcatdata_dmft", "cmc", "car", "vehicle"), job.id]
+
 job_ids = setdiff(findNotDone()$job.id, findRunning()$job.id)
 
 chunks = split(job_ids, ceiling(seq_along(job_ids) / 12))
 
 time = format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 
-walk(chunks[1:20], function(chunk) {
+walk(chunks[1:6], function(chunk) {
   env = new.env()
   set(reg$status, i = chunk, j = "started", value = NA_integer_)
   set(reg$status, i = chunk, j = "done", value = NA_integer_)
